@@ -11,10 +11,21 @@ modifications:
    and week number (replacing `N`)
 3. change `q1/CMakeLists.txt` to use the correct `.cpp` filename
 4. modify `question.md`, `input.txt`, and `expected-output.txt` as appropriate 
-   for the question
+   for the question; delete `input.txt` if no input is necessary
 5. for each additional question, copy `q1` to a new subdirectory, add a 
    subdirectory line to `CMakeLists.txt`, and repeat steps 2-4 for the 
    new question subdirectory 
+
+## Commands
+
+The `build.sh` and `clean.sh` scripts do what they sound like they do.
+
+When you execute `check.sh`, for each executable, the executable is launched,
+each line from `input.txt` is copied to the process standard input 
+stream, and the output is checked against `expected-output.txt`.
+
+This happens inside a `screen` session so that the input text is echoed to
+the output, as would happen in a tty.
 
 ## License
 

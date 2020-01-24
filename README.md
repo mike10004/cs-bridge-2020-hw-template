@@ -7,14 +7,12 @@ To use this template, fork the repository and perform the following
 modifications:
 
 1. change this readme to reflect that this is an assignment, not the template
-2. rename `q1/mac937_hwN_q1.cpp` with the correct NetID (replacing `mac937`) 
-   and week number (replacing `N`)
-3. change `q1/CMakeLists.txt` to use the correct `.cpp` filename
-4. modify `question.md`, `input.txt`, and `expected-output.txt` as appropriate 
+2. modify `question.md`, `input.txt`, and `expected-output.txt` as appropriate 
    for the question; delete `input.txt` if no input is necessary
-5. for each additional question, copy `q1` to a new subdirectory, add a 
-   subdirectory line to `CMakeLists.txt`, and repeat steps 2-4 for the 
-   new question subdirectory 
+3. for each additional question, copy `q1` to a new subdirectory, add a 
+   subdirectory line to `$PARENT/CMakeLists.txt`, change the project name in 
+   `$PARENT/$Q/CMakeLists.txt` from `q1` to `q2` (or the correct number) and 
+   repeat step 2 for the new question  
 
 ## Commands
 
@@ -26,6 +24,11 @@ stream, and the output is checked against `expected-output.txt`.
 
 This happens inside a `screen` session so that the input text is echoed to
 the output, as would happen in a tty.
+
+The `prepare.sh` command is executed when you're done writing all the code and
+need the filenames to satisfy the instructors' convention. Each `main.cpp` file
+is copied to the `stage` directory with a name of the form `${PREFIX}qN.cpp`,
+where `${PREFIX}` is the argument you supply to the script. 
 
 ## License
 

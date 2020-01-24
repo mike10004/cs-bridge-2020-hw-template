@@ -10,9 +10,12 @@ modifications:
 2. modify `question.md`, `input.txt`, and `expected-output.txt` as appropriate 
    for the question; delete `input.txt` if no input is necessary
 3. for each additional question, copy `q1` to a new subdirectory, add a 
-   subdirectory line to `$PARENT/CMakeLists.txt`, change the project name in 
-   `$PARENT/$Q/CMakeLists.txt` from `q1` to `q2` (or the correct number) and 
-   repeat step 2 for the new question  
+   subdirectory line to `$PARENT/CMakeLists.txt`, change the project name and
+   exectuable name in the new directory (e.g. from `q1` to `q2`) and repeat 
+   step 2 for the new question  
+
+You can have multiple test cases by naming your input files `input1.txt`, `input2.txt`,
+and so on, and including corresponding expected outputs `expected-output1.txt`, etc.
 
 ## Commands
 

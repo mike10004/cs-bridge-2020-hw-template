@@ -83,6 +83,9 @@ for Q in $QUESTIONS ; do
     else
       WRONGS="$Q $WRONGS"
     fi
+    if [ "$FIRST" == "1" ] ; then
+      break
+    fi
   done
   if [ -z "$ANY_INPUT" ] ; then
     echo "$Q: no input files" >&2

@@ -3,4 +3,4 @@ project(q1)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(q1 mac937_hwN_q1.cpp)
+add_executable(q1 main.cpp)

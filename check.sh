@@ -2,6 +2,9 @@
 
 set -e
 
+command -V screen >/dev/null
+command -V dos2unix >/dev/null
+
 if [ "$DEBUG" == "1" ] ; then
   DEBUGSINK="/dev/stderr"
 else
@@ -38,20 +41,25 @@ for Q in $QUESTIONS ; do
   BUILD_DIR="$Q/cmake-build"
   EXEC="$BUILD_DIR/$Q"
   info "evaluating $EXEC"
-  INFILE="$Q/input.txt"
-  EXPECTEDFILE="$Q/expected-output.txt"
-  if [ ! -f "$EXPECTEDFILE" ] ; then
-    echo "file missing: $EXPECTEDFILE" >&2
-    exit 1
-  fi
-  OUTFILE="$BUILD_DIR/actual.txt"
-  touch "$OUTFILE"
-  truncate --size=0 "$OUTFILE"
-  if [ -f "$INFILE" ] ; then
+  INFILES=$(find "$Q" -type f -name "input*.txt" -print0 | sort -z | xargs -0 echo)
+  debug "input files: $INFILES"
+  for INFILE in $INFILES ; do
+    ANY_INPUT=1
     if [ "$(wc -l < "$INFILE")" == "0" ] ; then
-      echo "must contain newline: $INFILE" <&2
+      echo "input file must contain newline: $INFILE" <&2
       exit 1
     fi
+    INFILE_BASE=$(basename "$INFILE")
+    SUFFIX=${INFILE_BASE:5}
+    EXPECTEDFILE="$Q/expected-output${SUFFIX}"  # input-3.txt -> expected-output-3.txt
+    debug "examining $INFILE against $EXPECTEDFILE"
+    if [ ! -f "$EXPECTEDFILE" ] ; then
+      echo "file missing: $EXPECTEDFILE" >&2
+      exit 1
+    fi
+    OUTFILE="$BUILD_DIR/actual${SUFFIX}.txt"
+    touch "$OUTFILE"
+    truncate --size=0 "$OUTFILE"
     rm -rf ./screenlog.*
     TEMPFILE=$(mktemp --tmpdir="$BUILD_DIR" sess_XXXXXXXXX)
     SESSIONNAME=$(basename "$TEMPFILE")
@@ -60,24 +68,31 @@ for Q in $QUESTIONS ; do
     sleep "$PAUSE"
     while IFS= read -r line
     do
+      # Notice the line break in the line that follows
       screen -S "$SESSIONNAME" -X stuff "$line
 "
       debug "sleeping ${PAUSE} after entering $line"
       sleep "$PAUSE"
     done < "$INFILE"
-    screen -S "$SESSIONNAME" -X quit >/dev/null || true 
+    screen -S "$SESSIONNAME" -X quit >/dev/null || true
     rm "$TEMPFILE" -f
     dos2unix -q -n screenlog.0 "$OUTFILE"
     rm screenlog.0
-  else
-    echo "$Q: no input file" >&2
+    if diff "$EXPECTEDFILE" "$OUTFILE" ; then
+      RIGHTS="$Q $RIGHTS"
+    else
+      WRONGS="$Q $WRONGS"
+    fi
+  done
+  if [ -z "$ANY_INPUT" ] ; then
+    echo "$Q: no input files" >&2
     "$EXEC" > "$OUTFILE"
-  fi
-  
-  if diff "$EXPECTEDFILE" "$OUTFILE" ; then
-    RIGHTS="$Q $RIGHTS"
-  else
-    WRONGS="$Q $WRONGS"
+    EXPECTEDFILE="$Q/expected-output.txt"
+    if diff "$EXPECTEDFILE" "$OUTFILE" ; then
+      RIGHTS="$Q $RIGHTS"
+    else
+      WRONGS="$Q $WRONGS"
+    fi
   fi
 done
 

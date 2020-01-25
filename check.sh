@@ -52,7 +52,7 @@ for Q in $QUESTIONS ; do
     INFILE_BASE=$(basename "$INFILE")
     SUFFIX=${INFILE_BASE:5}
     EXPECTEDFILE="$Q/expected-output${SUFFIX}"  # input-3.txt -> expected-output-3.txt
-    debug "examining $INFILE against $EXPECTEDFILE"
+    info "test case: $INFILE -> $EXPECTEDFILE"
     if [ ! -f "$EXPECTEDFILE" ] ; then
       echo "file missing: $EXPECTEDFILE" >&2
       exit 1

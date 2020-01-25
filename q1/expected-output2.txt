@@ -1,7 +1,7 @@
-Enter price of first item: 10
-Enter price of second item: 20
-Does customer have a club card? (Y/N): y
-Enter tax rate, e.g. 5.5 for 5.5% tax: 8.25
-Base price: 30.0
-Price after discounts: 22.5
-Total price: 24.35625
+Enter price of first item: 5
+Enter price of second item: 14
+Does customer have a club card? (Y/N): yes
+Enter tax rate, e.g. 5.5 for 5.5% tax: 7.0
+Base price: 19.00
+Price after discounts: 14.85
+Total price: 15.88950

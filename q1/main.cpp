@@ -39,7 +39,7 @@ int main()
     priceTotal = priceAfterDiscount * taxMultiplier;
 
     cout.setf(ios::fixed);
-    cout.precision(1);
+    cout.precision(2);
     cout << "Base price: " << priceBase << endl;
     cout << "Price after discounts: " << priceAfterDiscount << endl;
     cout.precision(5);

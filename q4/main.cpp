@@ -3,6 +3,10 @@
 
 using namespace std;
 
+const int FLOOR_ROUND = 1;
+const int CEILING_ROUND = 2;
+const int ROUND = 3;
+
 int main()
 {
     double inputNumber, roundedNumber;
@@ -16,13 +20,13 @@ int main()
     cin >> roundingMethod;
     switch (roundingMethod)
     {
-        case 1:
+        case FLOOR_ROUND:
             roundedNumber = floor(inputNumber);
             break;
-        case 2:
+        case CEILING_ROUND:
             roundedNumber = ceil(inputNumber);
             break;
-        case 3:
+        case ROUND:
             roundedNumber = round(inputNumber);
             break;
         default:

@@ -1,0 +1,4 @@
+Enter day of week call was started: Fr
+Enter time of day call was started (24-hour format): 17:59
+Enter length of call in minutes: 23
+Cost of call: 9 dollars and 20 cents

@@ -45,6 +45,12 @@ for Q in $QUESTIONS ; do
   debug "input files: $INFILES"
   for INFILE in $INFILES ; do
     ANY_INPUT=1
+    if [ -n "$SINGLE_CASE" ] ; then
+      if [ "$SINGLE_CASE" != "$INFILE" ] ; then
+        debug "skipping: $INFILE"
+        continue
+      fi
+    fi
     if [ "$(wc -l < "$INFILE")" == "0" ] ; then
       echo "input file must contain newline: $INFILE" <&2
       exit 1
@@ -92,7 +98,7 @@ for Q in $QUESTIONS ; do
     if diff "$EXPECTEDFILE" "$OUTFILE" ; then
       RIGHTS="$Q $RIGHTS"
     else
-      WRONGS="$Q $WRONGS"
+      WRONGS="$Q $INFILE $WRONGS"
     fi
     if [ "$FIRST" == "1" ] ; then
       break

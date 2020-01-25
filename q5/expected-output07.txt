@@ -1,0 +1,3 @@
+Please enter weight (in pounds): 202.475004
+Please enter height (in inches): 69
+The weight status is: Overweight

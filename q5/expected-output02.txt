@@ -1,0 +1,3 @@
+Please enter weight (in pounds): 100.6
+Please enter height (in inches): 62
+The weight status is: Underweight

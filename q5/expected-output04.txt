@@ -1,0 +1,3 @@
+Please enter weight (in pounds): 140.4
+Please enter height (in inches): 67
+The weight status is: Normal

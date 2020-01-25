@@ -1,0 +1,3 @@
+Please enter weight (in pounds): 164.067
+Please enter height (in inches): 61
+The weight status is: Obese

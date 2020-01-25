@@ -1,0 +1,4 @@
+Please enter your name: Julia
+Please enter your graduation year: 2023
+Please enter current year: 2020
+Julia, you are a Sophomore

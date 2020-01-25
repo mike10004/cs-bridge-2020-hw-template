@@ -1,0 +1,4 @@
+Please enter your name: Jennifer
+Please enter your graduation year: 1985
+Please enter current year: 1983
+Jennifer, you are a Junior

@@ -1,0 +1,4 @@
+Please enter your name: Jane
+Please enter your graduation year: 2209
+Please enter current year: 2209
+Jane, you are graduated

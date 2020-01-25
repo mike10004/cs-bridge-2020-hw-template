@@ -1,0 +1,4 @@
+Please enter your name: Joanne
+Please enter your graduation year: 1992
+Please enter current year: 1991
+Joanne, you are a Senior

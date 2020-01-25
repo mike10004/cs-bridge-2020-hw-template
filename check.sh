@@ -98,7 +98,7 @@ for Q in $QUESTIONS ; do
     if diff "$EXPECTEDFILE" "$OUTFILE" ; then
       RIGHTS="$Q $RIGHTS"
     else
-      WRONGS="$Q $INFILE $WRONGS"
+      WRONGS="$INFILE $WRONGS"
     fi
     if [ "$FIRST" == "1" ] ; then
       break

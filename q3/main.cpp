@@ -29,9 +29,9 @@ int main()
     } else {
         if (b == 0) {
             if (c == 0) {
-                cout << "This equation has infinite solutions.";
+                cout << "This equation has an infinite number of solutions";
             } else {
-                cout << "This equation has zero solutions.";
+                cout << "This equation has no solution";
             }
         } else {
             // a == 0 && b != 0 --> linear equation bx + c == 0 --> x = -c/b

@@ -1,0 +1,4 @@
+Please enter value of a: 1
+Please enter value of b: 1
+Please enter value of c: -2
+This equation has two real solutions: x=1 and x=-2

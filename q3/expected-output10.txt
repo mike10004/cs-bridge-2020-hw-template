@@ -1,0 +1,4 @@
+Please enter value of a: 4
+Please enter value of b: 4
+Please enter value of c: -3
+This equation has two real solutions: x=0.5 and x=-1.5

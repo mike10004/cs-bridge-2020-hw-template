@@ -1,0 +1,4 @@
+Please enter value of a: 0
+Please enter value of b: -2
+Please enter value of c: 6
+This equation has a single real solution x=3

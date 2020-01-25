@@ -1,0 +1,4 @@
+Please enter value of a: 2
+Please enter value of b: -11
+Please enter value of c: -21
+This equation has two real solutions: x=7 and x=-1.5

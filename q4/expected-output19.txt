@@ -1,0 +1,8 @@
+Please enter a Real number:
+-2.9
+Choose your rounding method:
+1. Floor round
+2. Ceiling round
+3. Round to the nearest whole number
+3
+-3

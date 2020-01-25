@@ -1,37 +1,6 @@
-# Homework Project Template
+# Week 3 homework programs
 
-This repository is a template for projects that contain solutions to homework 
-assignments for NYU Tandon CS Bridge Winter 2020.
-
-To use this template, fork the repository and perform the following 
-modifications:
-
-1. change this readme to reflect that this is an assignment, not the template
-2. modify `question.md`, `input.txt`, and `expected-output.txt` as appropriate 
-   for the question; delete `input.txt` if no input is necessary
-3. for each additional question, copy `q1` to a new subdirectory, add a 
-   subdirectory line to `$PARENT/CMakeLists.txt`, change the project name and
-   exectuable name in the new directory (e.g. from `q1` to `q2`) and repeat 
-   step 2 for the new question  
-
-You can have multiple test cases by naming your input files `input1.txt`, `input2.txt`,
-and so on, and including corresponding expected outputs `expected-output1.txt`, etc.
-
-## Commands
-
-The `build.sh` and `clean.sh` scripts do what they sound like they do.
-
-When you execute `check.sh`, for each executable, the executable is launched,
-each line from `input.txt` is copied to the process standard input 
-stream, and the output is checked against `expected-output.txt`.
-
-This happens inside a `screen` session so that the input text is echoed to
-the output, as would happen in a tty.
-
-The `prepare.sh` command is executed when you're done writing all the code and
-need the filenames to satisfy the instructors' convention. Each `main.cpp` file
-is copied to the `stage` directory with a name of the form `${PREFIX}qN.cpp`,
-where `${PREFIX}` is the argument you supply to the script. 
+Hello!
 
 ## License
 

@@ -1,0 +1,4 @@
+Please enter value of a: 1
+Please enter value of b: 4
+Please enter value of c: 4
+This equation has a single real solution x=-2

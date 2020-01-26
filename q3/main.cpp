@@ -5,7 +5,9 @@ using namespace std;
 
 int main()
 {
-    double a, b, c, discriminant, x1, x2;
+    double a, b, c;      // These variable names are short but sensible for the context
+    double x1, x2;       // The two possible solutions for x
+    double discriminant;
     cout << "Please enter value of a: ";
     cin >> a;
     cout << "Please enter value of b: ";

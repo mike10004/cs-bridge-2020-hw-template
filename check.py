@@ -52,7 +52,7 @@ def detect_test_case_files(q_dir: str) -> List[Tuple[Optional[str], str]]:
                 test_cases.append((input_file, expected_file))
     if not test_cases:
         return [(None, os.path.join(q_dir, 'expected-output.txt'))]
-    return test_cases
+    return sorted(test_cases)
 
 
 class TestCaseOutcome(NamedTuple):
@@ -67,12 +67,12 @@ class TestCaseOutcome(NamedTuple):
 
 class TestCaseRunner(object):
 
-    def __init__(self, executable, pause_duration=_DEFAULT_PAUSE_DURATION_SECONDS):
+    def __init__(self, executable, pause_duration=_DEFAULT_PAUSE_DURATION_SECONDS, log_input=False):
         self.executable = executable
         self.pause_duration = pause_duration
+        self.log_input = log_input
 
     def _pause(self, duration=None):
-        #_log.debug("sleeping for %s seconds", self.pause_duration)
         time.sleep(self.pause_duration if duration is None else duration)
 
     def run_test_case(self, input_file: Optional[str], expected_file: str):
@@ -97,15 +97,13 @@ class TestCaseRunner(object):
             exitcode = subprocess.call(['screen', '-L', '-S', case_id, '-d', '-m', self.executable], cwd=tempdir)
             if exitcode != 0:
                 return outcome(False, None, f"screen start failure {exitcode}")
-            _log.debug("[%s] screen session %s started for %s; feeding lines from %s", tid, case_id, self.executable, os.path.basename(input_file))
-            #self._pause(self.start_delay)
-            #_log.debug("screen sessions: %s", _cmd(['screen', '-list']).split("\n"))
+            _log.debug("[%s] screen session %s started for %s; feeding lines from %s", tid, case_id, os.path.basename(self.executable), os.path.basename(input_file))
             completed = False
             try:
                 screenlog = os.path.join(tempdir, 'screenlog.0')
                 for i, line in enumerate(input_lines):
                     self._pause()
-                    _log.debug("[%s] feeding line %s to process: %s", tid, i+1, line.strip())
+                    if self.log_input: _log.debug("[%s] feeding line %s to process: %s", tid, i+1, line.strip())
                     proc = subprocess.run(['screen', '-S', case_id, '-X', 'stuff', line], stdout=PIPE, stderr=PIPE)  # note: important that line has terminal newline char
                     if proc.returncode != 0:
                         stdout, stderr = proc.stdout.decode('utf8'), proc.stderr.decode('utf8')
@@ -131,20 +129,21 @@ class ConcurrencyManager(object):
         self.outcomes = outcomes
         self.outcomes_lock = threading.Lock()
 
-    def perform(self, test_case_, i_):
-        input_file, expected_file = test_case_
+    def perform(self, test_case, i):
+        input_file, expected_file = test_case
         self.concurrer.acquire()
         try:
             outcome = self.runner.run_test_case(input_file, expected_file)
+            input_name = os.path.basename(input_file)
             if outcome.passed:
-                _log.debug("%s: case %s passed", self.q_name, i_ + 1)
+                _log.debug("%s: case %s (%s) passed", self.q_name, i + 1, input_name)
             else:
-                _log.info("%s: case %s (%s) failed: %s", self.q_name, i_ + 1, os.path.basename(input_file), outcome.message)
+                _log.info("%s: case %s (%s) failed: %s", self.q_name, i + 1, input_name, outcome.message)
         finally:
             self.concurrer.release()
         self.outcomes_lock.acquire()
         try:
-            self.outcomes[test_case_] = outcome
+            self.outcomes[test_case] = outcome
         finally:
             self.outcomes_lock.release()
 
@@ -158,14 +157,14 @@ def report(outcomes: List[TestCaseOutcome], ofile=sys.stderr):
             difflib.context_diff(expected, actual, tofile=ofile)
 
 
-def check_cpp(cpp_file: str, concurrency_level: int, pause_duration: float, max_test_cases:int):
+def check_cpp(cpp_file: str, concurrency_level: int, pause_duration: float, max_test_cases:int, log_input):
     q_dir = os.path.dirname(cpp_file)
     q_name = os.path.basename(q_dir)
     q_executable = os.path.join(q_dir, 'cmake-build', q_name)
     assert os.path.isfile(q_executable), "not found: " + q_executable
     test_case_files = detect_test_case_files(q_dir)
     _log.info("examining %s: %s test cases", q_name, len(test_case_files))
-    runner = TestCaseRunner(q_executable, pause_duration)
+    runner = TestCaseRunner(q_executable, pause_duration, log_input)
     outcomes = {}
     threads: List[threading.Thread] = []
     concurrency_mgr = ConcurrencyManager(runner, concurrency_level, q_name, outcomes)
@@ -191,6 +190,7 @@ def main():
     parser.add_argument("-p", "--pause", type=float, metavar="DURATION", help="pause duration (seconds)", default=_DEFAULT_PAUSE_DURATION_SECONDS)
     parser.add_argument("-m", "--max-cases", type=int, default=None, metavar="N", help="run at most N test cases per cpp")
     parser.add_argument("-j", "-t", "--threads", type=int, default=4, metavar="N", help="concurrency level for test cases")
+    parser.add_argument("--log-input", help="log feeding of input lines at DEBUG level")
     args = parser.parse_args()
     logging.basicConfig(level=logging.__dict__[args.log_level])
     this_file = os.path.abspath(__file__)
@@ -215,7 +215,7 @@ def main():
         _log.error("no main.cpp files found")
         return 1
     for i, cpp_file in enumerate(sorted(main_cpps)):
-        check_cpp(cpp_file, args.threads, args.pause, args.max_cases)
+        check_cpp(cpp_file, args.threads, args.pause, args.max_cases, args.log_input)
     return 0
 
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3.6
 
 import logging
+import threading
 import sys
 import uuid
 import tempfile
@@ -77,6 +78,7 @@ class TestCaseRunner(object):
         time.sleep(self.pause_duration if duration is None else duration)
 
     def run_test_case(self, input_file: Optional[str], expected_file: str):
+        tid = threading.current_thread().ident
         expected_text = read_file_text(expected_file)
 
         def outcome(passed: bool, actual_text: Optional[str], message: str):
@@ -90,13 +92,14 @@ class TestCaseRunner(object):
         if input_file is None:
             output = _cmd([self.executable])
             return check(output)
+        
         input_lines = read_file_lines(input_file)
         case_id = str(uuid.uuid4())
         with tempfile.TemporaryDirectory() as tempdir:
             exitcode = subprocess.call(['screen', '-L', '-S', case_id, '-d', '-m', self.executable], cwd=tempdir)
             if exitcode != 0:
                 return outcome(False, None, f"screen start failure {exitcode}")
-            _log.debug("screen session %s started for %s; feeding lines from %s", case_id, self.executable, os.path.basename(input_file))
+            _log.debug("[%s] screen session %s started for %s; feeding lines from %s", tid, case_id, self.executable, os.path.basename(input_file))
             #self._pause(self.start_delay)
             #_log.debug("screen sessions: %s", _cmd(['screen', '-list']).split("\n"))
             completed = False
@@ -104,11 +107,11 @@ class TestCaseRunner(object):
                 screenlog = os.path.join(tempdir, 'screenlog.0')
                 for i, line in enumerate(input_lines):
                     self._pause()
-                    _log.debug("feeding line %s to process: %s", i+1, line.strip())
+                    _log.debug("[%s] feeding line %s to process: %s", tid, i+1, line.strip())
                     proc = subprocess.run(['screen', '-S', case_id, '-X', 'stuff', line], stdout=PIPE, stderr=PIPE)  # note: important that line has terminal newline char
                     if proc.returncode != 0:
                         stdout, stderr = proc.stdout.decode('utf8'), proc.stderr.decode('utf8')
-                        msg = f"stuff exit code {proc.returncode} feeding line {i+1}; stderr={stderr}; stdout={stdout}"
+                        msg = f"[{tid}] stuff exit code {proc.returncode} feeding line {i+1}; stderr={stderr}; stdout={stdout}"
                         _log.debug(msg)
                         return outcome(False, read_file_text(screenlog, True), msg)
                 completed = True
@@ -121,7 +124,7 @@ class TestCaseRunner(object):
         return check(output)
 
 
-def check_cpp(cpp_file: str, pause_duration: float, max_test_cases:int):
+def check_cpp(cpp_file: str, concurrency_level: int, pause_duration: float, max_test_cases:int):
     q_dir = os.path.dirname(cpp_file)
     q_name = os.path.basename(q_dir)
     q_executable = os.path.join(q_dir, 'cmake-build', q_name)
@@ -129,14 +132,31 @@ def check_cpp(cpp_file: str, pause_duration: float, max_test_cases:int):
     test_case_files = detect_test_case_files(q_dir)
     runner = TestCaseRunner(q_executable, pause_duration)
     outcomes = {}
+    outcomes_lock = threading.Lock()
+    threads: List[threading.Thread] = []
+    concurrer = threading.Semaphore(concurrency_level)
     for i, test_case in enumerate(test_case_files):
         if max_test_cases is not None and i >= max_test_cases:
             _log.debug("breaking early due to test case limit")
             break
         input_file, expected_file = test_case
-        outcome = runner.run_test_case(input_file, expected_file)
-        outcomes[test_case] = outcome
-        _log.info("%s: case %s: pass? %s; message=%s", q_name, i + 1, outcome.passed, outcome.message)
+        def perform():
+            concurrer.acquire()
+            try:
+                outcome = runner.run_test_case(input_file, expected_file)
+                _log.info("%s: case %s: pass? %s; message=%s", q_name, i + 1, outcome.passed, outcome.message)
+            finally:
+                concurrer.release()
+            outcomes_lock.acquire()
+            try:
+                outcomes[test_case] = outcome
+            finally:
+                outcomes_lock.release()
+        t = threading.Thread(target=perform)
+        t.start()
+        threads.append(t)
+    for t in threads:
+        t.join()
     failures = [outcome for outcome in outcomes.values() if not outcome.passed]
     if failures:
         print(f"{len(failures)} of {len(outcomes)} tests failed", file=sys.stderr)
@@ -148,6 +168,7 @@ def main():
     parser.add_argument("-l", "--log-level", metavar="LEVEL", choices=('DEBUG', 'INFO', 'WARNING', 'ERROR'), default='INFO', help="set log level")
     parser.add_argument("-p", "--pause", type=float, metavar="DURATION", help="pause duration (seconds)", default=_DEFAULT_PAUSE_DURATION_SECONDS)
     parser.add_argument("-m", "--max-cases", type=int, default=None, metavar="N", help="run at most N test cases per cpp")
+    parser.add_argument("-j", "-t", "--threads", type=int, default=4, metavar="N", help="concurrency level for test cases")
     args = parser.parse_args()
     logging.basicConfig(level=logging.__dict__[args.log_level])
     this_file = os.path.abspath(__file__)
@@ -172,7 +193,7 @@ def main():
         _log.error("no main.cpp files found")
         return 1
     for i, cpp_file in enumerate(sorted(main_cpps)):
-        check_cpp(cpp_file, args.pause, args.max_cases)
+        check_cpp(cpp_file, args.threads, args.pause, args.max_cases)
     return 0
 
 

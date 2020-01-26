@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
+
 import difflib
+import fnmatch
 import sys
 import logging
 import threading
@@ -150,20 +152,32 @@ class ConcurrencyManager(object):
 
 def report(outcomes: List[TestCaseOutcome], ofile=sys.stderr):
     for outcome in outcomes:
-        print(f"{outcome.executable}: {outcome.input_file}: {outcome.message}")
+        q_name = os.path.basename(outcome.executable)
+        input_name = os.path.basename(outcome.input_file)
+        print(f"{q_name}: {input_name}: {outcome.message}")
         if outcome.message == 'diff':
             expected = outcome.expected_text.split("\n")
             actual = outcome.actual_text.split("\n")
-            difflib.context_diff(expected, actual, tofile=ofile)
+            delta = difflib.context_diff(expected, actual)
+            for line in delta:
+                print(line, file=ofile)
 
 
-def check_cpp(cpp_file: str, concurrency_level: int, pause_duration: float, max_test_cases:int, log_input):
+def matches(filter_pattern: Optional[str], test_case: Tuple[Optional[str], str]):
+    if filter_pattern is None:
+        return True
+    filename = os.path.basename(test_case[0])
+    #_log.debug("checking %s against ")
+    return fnmatch.fnmatch(filename, filter_pattern)
+
+
+def check_cpp(cpp_file: str, concurrency_level: int, pause_duration: float, max_test_cases:int, log_input, filter_pattern):
     q_dir = os.path.dirname(cpp_file)
     q_name = os.path.basename(q_dir)
     q_executable = os.path.join(q_dir, 'cmake-build', q_name)
     assert os.path.isfile(q_executable), "not found: " + q_executable
     test_case_files = detect_test_case_files(q_dir)
-    _log.info("examining %s: %s test cases", q_name, len(test_case_files))
+    _log.info("%s: running %s test cases", q_name, len(test_case_files))
     runner = TestCaseRunner(q_executable, pause_duration, log_input)
     outcomes = {}
     threads: List[threading.Thread] = []
@@ -172,15 +186,19 @@ def check_cpp(cpp_file: str, concurrency_level: int, pause_duration: float, max_
         if max_test_cases is not None and i >= max_test_cases:
             _log.debug("breaking early due to test case limit")
             break
+        if not matches(filter_pattern, test_case):
+            _log.debug("skipping; filter %s rejected test case %s", filter_pattern, test_case)
+            continue
         t = threading.Thread(target=lambda: concurrency_mgr.perform(test_case, i))
         t.start()
         threads.append(t)
     for t in threads:
         t.join()
+    if not threads:
+        _log.warning("all test cases were skipped")
     failures = [outcome for outcome in outcomes.values() if not outcome.passed]
     _log.info("%s: %s failures among %s test cases", q_name, len(failures), len(outcomes))
-    for failure in failures:
-        report(failure)
+    report(failures)
 
 
 def main():
@@ -191,6 +209,7 @@ def main():
     parser.add_argument("-m", "--max-cases", type=int, default=None, metavar="N", help="run at most N test cases per cpp")
     parser.add_argument("-j", "-t", "--threads", type=int, default=4, metavar="N", help="concurrency level for test cases")
     parser.add_argument("--log-input", help="log feeding of input lines at DEBUG level")
+    parser.add_argument("--filter", metavar="PATTERN", help="match test case input filenames against PATTERN")
     args = parser.parse_args()
     logging.basicConfig(level=logging.__dict__[args.log_level])
     this_file = os.path.abspath(__file__)
@@ -215,7 +234,7 @@ def main():
         _log.error("no main.cpp files found")
         return 1
     for i, cpp_file in enumerate(sorted(main_cpps)):
-        check_cpp(cpp_file, args.threads, args.pause, args.max_cases, args.log_input)
+        check_cpp(cpp_file, args.threads, args.pause, args.max_cases, args.log_input, args.filter)
     return 0
 
 

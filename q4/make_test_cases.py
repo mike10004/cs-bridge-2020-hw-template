@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# q4
+
 import os.path
 
 
@@ -11,7 +13,7 @@ def write_case(case_id: int, case):
     case_id = f"{case_id:02d}"
     x, choice, x_rounded = case
     intext = f"{x}\n{choice}\n"
-    in_filename = f"input{case_id}.txt"
+    in_filename = f"test-cases/input{case_id}.txt"
     with open(to_pathname(in_filename), 'w') as ofile:
         ofile.write(intext)
     extext = f"""\
@@ -24,7 +26,7 @@ Choose your rounding method:
 {choice}
 {x_rounded}
 """
-    ex_filename = f"expected-output{case_id}.txt"
+    ex_filename = f"test-cases/expected-output{case_id}.txt"
     with open(to_pathname(ex_filename), 'w') as ofile:
         ofile.write(extext)
     print(f"{in_filename} and {ex_filename} written")

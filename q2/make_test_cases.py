@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
+# q2
 
 def write_case(id, name, gradyear, curryear, expected):
     intext = f"{name}\n{gradyear}\n{curryear}\n"
-    with open(f"input{id}.txt", 'w') as ofile:
+    with open(f"test-cases/input{id}.txt", 'w') as ofile:
         print(intext, end="", file=ofile)
     extext = f"Please enter your name: {name}\nPlease enter your graduation year: {gradyear}\nPlease enter current year: {curryear}\n{name}, you are {expected}\n"
-    with open(f"expected-output{id}.txt", 'w') as ofile:
+    with open(f"test-cases/expected-output{id}.txt", 'w') as ofile:
         print(extext, end="", file=ofile)
 
 

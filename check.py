@@ -1,21 +1,19 @@
-#!/usr/bin/env python3.6
-
+#!/usr/bin/env python3
+import difflib
+import sys
 import logging
 import threading
-import sys
 import uuid
 import tempfile
 import os.path
 import subprocess
 from subprocess import PIPE, DEVNULL
-import glob
 import time
 from argparse import ArgumentParser
 from typing import List, Tuple, Optional, NamedTuple
 
 
 _log = logging.getLogger(__name__)
-_SCREEN_START_DELAY_SECONDS = 2.0
 _DEFAULT_PAUSE_DURATION_SECONDS = 0.5
 
 
@@ -117,11 +115,47 @@ class TestCaseRunner(object):
                 completed = True
             finally:
                 self._pause()
-                exitcode = subprocess.call(['screen', '-S', case_id, '-X', 'quit'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)  # ok if failed; probably already terminated
-                # if not completed and exitcode != 0:
-                #     _log.warning("screen 'quit' failed with code %s", exitcode)
+                exitcode = subprocess.call(['screen', '-S', case_id, '-X', 'quit'], stdout=DEVNULL, stderr=DEVNULL)  # ok if failed; probably already terminated
+                if not completed and exitcode != 0:
+                    _log.warning("screen 'quit' failed with code %s", exitcode)
             output = read_file_text(screenlog).replace("\r\n", "\n")
         return check(output)
+
+
+class ConcurrencyManager(object):
+    
+    def __init__(self, runner, concurrency_level: int, q_name, outcomes):
+        self.concurrer = threading.Semaphore(concurrency_level)
+        self.runner = runner
+        self.q_name = q_name
+        self.outcomes = outcomes
+        self.outcomes_lock = threading.Lock()
+
+    def perform(self, test_case_, i_):
+        input_file, expected_file = test_case_
+        self.concurrer.acquire()
+        try:
+            outcome = self.runner.run_test_case(input_file, expected_file)
+            if outcome.passed:
+                _log.debug("%s: case %s passed", self.q_name, i_ + 1)
+            else:
+                _log.info("%s: case %s (%s) failed: %s", self.q_name, i_ + 1, os.path.basename(input_file), outcome.message)
+        finally:
+            self.concurrer.release()
+        self.outcomes_lock.acquire()
+        try:
+            self.outcomes[test_case_] = outcome
+        finally:
+            self.outcomes_lock.release()
+
+
+def report(outcomes: List[TestCaseOutcome], ofile=sys.stderr):
+    for outcome in outcomes:
+        print(f"{outcome.executable}: {outcome.input_file}: {outcome.message}")
+        if outcome.message == 'diff':
+            expected = outcome.expected_text.split("\n")
+            actual = outcome.actual_text.split("\n")
+            difflib.context_diff(expected, actual, tofile=ofile)
 
 
 def check_cpp(cpp_file: str, concurrency_level: int, pause_duration: float, max_test_cases:int):
@@ -130,36 +164,24 @@ def check_cpp(cpp_file: str, concurrency_level: int, pause_duration: float, max_
     q_executable = os.path.join(q_dir, 'cmake-build', q_name)
     assert os.path.isfile(q_executable), "not found: " + q_executable
     test_case_files = detect_test_case_files(q_dir)
+    _log.info("examining %s: %s test cases", q_name, len(test_case_files))
     runner = TestCaseRunner(q_executable, pause_duration)
     outcomes = {}
-    outcomes_lock = threading.Lock()
     threads: List[threading.Thread] = []
-    concurrer = threading.Semaphore(concurrency_level)
+    concurrency_mgr = ConcurrencyManager(runner, concurrency_level, q_name, outcomes)
     for i, test_case in enumerate(test_case_files):
         if max_test_cases is not None and i >= max_test_cases:
             _log.debug("breaking early due to test case limit")
             break
-        input_file, expected_file = test_case
-        def perform():
-            concurrer.acquire()
-            try:
-                outcome = runner.run_test_case(input_file, expected_file)
-                _log.info("%s: case %s: pass? %s; message=%s", q_name, i + 1, outcome.passed, outcome.message)
-            finally:
-                concurrer.release()
-            outcomes_lock.acquire()
-            try:
-                outcomes[test_case] = outcome
-            finally:
-                outcomes_lock.release()
-        t = threading.Thread(target=perform)
+        t = threading.Thread(target=lambda: concurrency_mgr.perform(test_case, i))
         t.start()
         threads.append(t)
     for t in threads:
         t.join()
     failures = [outcome for outcome in outcomes.values() if not outcome.passed]
-    if failures:
-        print(f"{len(failures)} of {len(outcomes)} tests failed", file=sys.stderr)
+    _log.info("%s: %s failures among %s test cases", q_name, len(failures), len(outcomes))
+    for failure in failures:
+        report(failure)
 
 
 def main():

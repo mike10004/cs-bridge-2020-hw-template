@@ -167,7 +167,6 @@ def matches(filter_pattern: Optional[str], test_case: Tuple[Optional[str], str])
     if filter_pattern is None:
         return True
     filename = os.path.basename(test_case[0])
-    #_log.debug("checking %s against ")
     return fnmatch.fnmatch(filename, filter_pattern)
 
 

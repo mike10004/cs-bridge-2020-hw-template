@@ -31,6 +31,10 @@ Choose your rounding method:
 
 
 def main():
+    # c++ and python differ on whether nearest negative is up or down
+    # For these test cases, we use a definition such that -1.5 rounds
+    # to -2.0, that is, the midpoint between two integers is rounded
+    # to the integer of greater magnitude.
     test_cases = [
         (4.78, 2, 5),
         (2.3, 1, 2),
@@ -47,10 +51,48 @@ def main():
         (-2.3, 3, -2),
         (-2.5, 1, -3),
         (-2.5, 2, -2),
-        (-2.5, 3, -3),  # c++ and python differ on whether nearest negative is up or down
+        (-2.5, 3, -3),
         (-2.9, 1, -3),
         (-2.9, 2, -2),
         (-2.9, 3, -3),
+        (-2, 1, -2),
+        (-2, 2, -2),
+        (-2, 3, -2),
+        (-0.5, 1, -1),
+        (-0.5, 2, 0),
+        (-0.5, 3, -1),
+        (0.5, 1, 0),
+        (0.5, 2, 1),
+        (0.5, 3, 1),
+        (-0.25, 1, -1),
+        (-0.25, 2, 0),
+        (-0.25, 3, 0),
+        (0.25, 1, 0),
+        (0.25, 2, 1),
+        (0.25, 3, 0),
+        (-0.75, 1, -1),
+        (-0.75, 2, 0),
+        (-0.75, 3, -1),
+        (0.75, 1, 0),
+        (0.75, 2, 1),
+        (0.75, 3, 1),
+        (0, 1, 0),
+        (0, 2, 0),
+        (0, 3, 0),
+        (1, 1, 1),
+        (1, 2, 1),
+        (1, 3, 1),
+        (-1, 1, -1),
+        (-1, 2, -1),
+        (-1, 3, -1),
+        (7, 1, 7),
+        (7, 2, 7),
+        (7, 3, 7),
+        (-7, 1, -7),
+        (-7, 2, -7),
+        (-7, 3, -7),
+        (0.499999975, 3, 0),
+        (-0.499999975, 3, 0),
     ]
     for i, test_case in enumerate(test_cases):
         write_case(i + 1, test_case)

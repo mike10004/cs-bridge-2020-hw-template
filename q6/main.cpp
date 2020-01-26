@@ -23,11 +23,11 @@ int main()
     int callCostCents;
     if (dayOfWeek == "Sa" || dayOfWeek == "Su") {
         callCostCents = callDurationMinutes * WEEKEND_RATE_CENTS_PER_MINUTE;
-    } else {
-        // starts strictly before 08:00 or after 18:00: weekday rate
-        if (callStartHours < 8 
-                || callStartHours > 18 
-                || (callStartHours == 18 && callStartMinutes > 0)) {
+    } else {  // All other day of week inputs are considered weekdays, even invalid ones
+        // if call starts strictly before 08:00 or after 18:00, then use weeknight rate
+        if ((callStartHours < 8) 
+                || (callStartHours > 18) 
+                || ((callStartHours == 18) && (callStartMinutes > 0))) {
             callCostCents = callDurationMinutes * WEEKNIGHT_RATE_CENTS_PER_MINUTE;
         } else {
             callCostCents = callDurationMinutes * WEEKDAY_RATE_CENTS_PER_MINUTE;

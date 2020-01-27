@@ -176,7 +176,7 @@ def check_cpp(cpp_file: str, concurrency_level: int, pause_duration: float, max_
     q_executable = os.path.join(q_dir, 'cmake-build', q_name)
     assert os.path.isfile(q_executable), "not found: " + q_executable
     test_case_files = detect_test_case_files(q_dir)
-    _log.info("%s: running %s test cases", q_name, len(test_case_files))
+    _log.info("%s: detected %s test cases", q_name, len(test_case_files))
     runner = TestCaseRunner(q_executable, pause_duration, log_input)
     outcomes = {}
     threads: List[threading.Thread] = []

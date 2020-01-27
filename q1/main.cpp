@@ -3,7 +3,7 @@
 
 using namespace std;
 
-const double CLUB_CARD_DISCOUNT = 0.1;
+const double CLUB_CARD_DISCOUNT = 0.1;  // 10% off
 
 int main()
 {
@@ -31,6 +31,8 @@ int main()
     }
     priceBase = item1Price + item2Price;
     priceAfterDiscount = maxItemPrice + (0.5 * minItemPrice);
+    
+    // interpret anything other than "yes"-like answers as "no"
     if (clubCardAnswer == "y" || clubCardAnswer == "Y" || clubCardAnswer == "yes")
     {
         priceAfterDiscount = priceAfterDiscount * (1.0 - CLUB_CARD_DISCOUNT);
@@ -38,11 +40,11 @@ int main()
     taxMultiplier = 1.0 + (taxPercent / 100.0);
     priceTotal = priceAfterDiscount * taxMultiplier;
 
+    // use 2 decimal places for all currency outputs
     cout.setf(ios::fixed);
     cout.precision(2);
     cout << "Base price: " << priceBase << endl;
     cout << "Price after discounts: " << priceAfterDiscount << endl;
-    cout.precision(5);
     cout << "Total price: " << priceTotal << endl;
 
     return 0;

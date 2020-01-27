@@ -4,4 +4,4 @@ Does customer have a club card? (Y/N): y
 Enter tax rate, e.g. 5.5 for 5.5% tax: 20.0
 Base price: 10.00
 Price after discounts: 9.00
-Total price: 10.80000
+Total price: 10.80

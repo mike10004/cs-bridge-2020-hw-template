@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 
+"""
+    check.py builds the executables and then runs the test cases.
+    
+    Your system must have `screen` installed.
+"""
+
 import difflib
 import fnmatch
 import sys

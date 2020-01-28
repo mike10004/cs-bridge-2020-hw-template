@@ -33,10 +33,11 @@ Choose your rounding method:
 
 
 def main():
-    # c++ and python differ on whether nearest negative is up or down
-    # For these test cases, we use a definition such that -1.5 rounds
-    # to -2.0, that is, the midpoint between two integers is rounded
-    # to the integer of greater magnitude.
+    # C++ and Python differ on whether nearest negative is up or down.
+    # For this question, we use the definition such that -1.5 rounds
+    # to -2, per instructor reply at https://piazza.com/class/k548telxf692rm?cid=153
+    # That is, the midpoint between two integers is rounded to the integer 
+    # of greater magnitude.
     test_cases = [
         (4.78, 2, 5),
         (2.3, 1, 2),
@@ -53,7 +54,7 @@ def main():
         (-2.3, 3, -2),
         (-2.5, 1, -3),
         (-2.5, 2, -2),
-        (-2.5, 3, -3),
+        (-2.5, 3, -3),  # an example of rounding negative number to nearest integer (-2.5 down to -3)
         (-2.9, 1, -3),
         (-2.9, 2, -2),
         (-2.9, 3, -3),

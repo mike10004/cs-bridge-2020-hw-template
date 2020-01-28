@@ -42,6 +42,8 @@ def main():
         (4, 4, -3, 'two real solutions: x=0.5 and x=-1.5'),
         (4, 1, -3, 'two real solutions: x=0.75 and x=-1'),
         (2, -11, -21, 'two real solutions: x=7 and x=-1.5'),
+        (0, -3, 0, 'a single real solution x=0'),
+        (0, 3, 0, 'a single real solution x=-0'),
     ]
     for i, test_case in enumerate(test_cases):
         write_case(i + 1, test_case)

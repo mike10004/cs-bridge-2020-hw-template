@@ -5,15 +5,18 @@
 import os.path
 
 
-def to_pathname(filename):
-    return os.path.join(os.path.dirname(__file__), filename)
+def to_pathname(filename, disable_mkdir=False):
+    pathname = os.path.join(os.path.dirname(__file__), 'test-cases', filename)
+    if not disable_mkdir:
+        os.makedirs(os.path.dirname(pathname), exist_ok=True)
+    return pathname
 
 
 def write_case(case_id: int, case):
     case_id = f"{case_id:02d}"
     w, h, status = case
     intext = f"{w}\n{h}\n"
-    in_filename = f"test-cases/input{case_id}.txt"
+    in_filename = f"input{case_id}.txt"
     with open(to_pathname(in_filename), 'w') as ofile:
         ofile.write(intext)
     extext = f"""\
@@ -21,7 +24,7 @@ Please enter weight (in pounds): {w}
 Please enter height (in inches): {h}
 The weight status is: {status}
 """
-    ex_filename = f"test-cases/expected-output{case_id}.txt"
+    ex_filename = f"expected-output{case_id}.txt"
     with open(to_pathname(ex_filename), 'w') as ofile:
         ofile.write(extext)
     print(f"{in_filename} and {ex_filename} written")

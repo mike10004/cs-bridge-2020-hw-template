@@ -6,8 +6,11 @@ import os.path
 from typing import NamedTuple
 
 
-def to_pathname(filename):
-    return os.path.join(os.path.dirname(__file__), filename)
+def to_pathname(filename, disable_mkdir=False):
+    pathname = os.path.join(os.path.dirname(__file__), 'test-cases', filename)
+    if not disable_mkdir:
+        os.makedirs(os.path.dirname(pathname), exist_ok=True)
+    return pathname
 
 
 class TestCase(NamedTuple):
@@ -25,7 +28,7 @@ class TestCase(NamedTuple):
 def write_case(case_id: int, case: TestCase):
     case_id = f"{case_id}"
     intext = f"{case.item1_price}\n{case.item2_price}\n{case.club_card}\n{case.tax_rate}\n"
-    in_filename = f"test-cases/input{case_id}.txt"
+    in_filename = f"input{case_id}.txt"
     with open(to_pathname(in_filename), 'w') as ofile:
         ofile.write(intext)
     extext = f"""\
@@ -37,7 +40,7 @@ Base price: {case.base_price}
 Price after discounts: {case.discount_price}
 Total price: {case.total_price}
 """
-    ex_filename = f"test-cases/expected-output{case_id}.txt"
+    ex_filename = f"expected-output{case_id}.txt"
     with open(to_pathname(ex_filename), 'w') as ofile:
         ofile.write(extext)
     print(f"{in_filename} and {ex_filename} written")

@@ -2,12 +2,21 @@
 
 # q2
 
+import os.path
+
+def to_pathname(filename, disable_mkdir=False):
+    pathname = os.path.join(os.path.dirname(__file__), 'test-cases', filename)
+    if not disable_mkdir:
+        os.makedirs(os.path.dirname(pathname), exist_ok=True)
+    return pathname
+
+
 def write_case(id, name, gradyear, curryear, expected):
     intext = f"{name}\n{gradyear}\n{curryear}\n"
-    with open(f"test-cases/input{id}.txt", 'w') as ofile:
+    with open(to_pathname(f"input{id}.txt"), 'w') as ofile:
         print(intext, end="", file=ofile)
     extext = f"Please enter your name: {name}\nPlease enter your graduation year: {gradyear}\nPlease enter current year: {curryear}\n{name}, you are {expected}\n"
-    with open(f"test-cases/expected-output{id}.txt", 'w') as ofile:
+    with open(to_pathname(f"expected-output{id}.txt"), 'w') as ofile:
         print(extext, end="", file=ofile)
 
 
